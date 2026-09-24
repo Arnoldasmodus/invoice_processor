@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  invoice-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: invoice_processor_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=Invoice Processor API
+      - APP_VERSION=0.1.0
+      - DEBUG=true
+      - ENVIRONMENT=development
+      - API_V1_PREFIX=/api/v1
+      - API_KEY=${API_KEY:-dev-api-key}
+      - AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT}
+      - AZURE_DOCUMENT_INTELLIGENCE_KEY=${AZURE_DOCUMENT_INTELLIGENCE_KEY}
+      - STORAGE_TYPE=local
+      - LOCAL_STORAGE_DIR=/app/storage_data
+    volumes:
+      - ./storage_data:/app/storage_data
+      - ./app:/app/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
