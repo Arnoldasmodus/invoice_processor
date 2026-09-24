@@ -6,6 +6,8 @@ from app.core.security import validate_api_key
 from app.services.document_intelligence.analyzer import DocumentAnalyzerService
 from app.services.document_intelligence.client import DocumentIntelligenceClientManager
 from app.services.document_intelligence.parser import DocumentIntelligenceParser
+from app.services.document_service import DocumentService
+from app.services.health_service import HealthService
 from app.services.pdf.validator import PDFValidator
 from app.services.pdf.splitter import PDFSplitter
 from app.services.storage.base import BaseStorageService
@@ -55,3 +57,25 @@ def get_analyzer_service(
         client_manager=client_manager,
         parser=parser,
     )
+
+
+def get_document_service(
+    settings: Settings = Depends(get_settings),
+    analyzer: DocumentAnalyzerService = Depends(get_analyzer_service),
+    pdf_validator: PDFValidator = Depends(get_pdf_validator),
+    storage: BaseStorageService = Depends(get_storage_service),
+) -> DocumentService:
+    """Dependency provider for DocumentService workflow orchestrator."""
+    return DocumentService(
+        settings=settings,
+        analyzer=analyzer,
+        pdf_validator=pdf_validator,
+        storage=storage,
+    )
+
+
+def get_health_service(
+    settings: Settings = Depends(get_settings),
+) -> HealthService:
+    """Dependency provider for HealthService."""
+    return HealthService(settings=settings)

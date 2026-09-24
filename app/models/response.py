@@ -85,3 +85,13 @@ class AnalyzeDocumentResponse(BaseModel):
     tables: List[DocumentTable] = Field(default_factory=list, description="Extracted tables")
     invoice_data: Optional[InvoiceExtractionResponse] = Field(None, description="Structured invoice output if applicable")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Execution metadata (timing, file size, etc.)")
+
+
+class HealthResponse(BaseModel):
+    """Health check response schema."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    status: str = Field(..., description="Service status indicator")
+    version: str = Field(..., description="Application version")
+    environment: str = Field(..., description="Runtime environment")
+    details: Dict[str, Any] = Field(default_factory=dict, description="Detailed component status")

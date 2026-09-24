@@ -33,6 +33,7 @@ class DocumentAnalyzerService(BaseService):
         pages: Optional[str] = None,
         features: Optional[List[DocumentAnalysisFeature]] = None,
         locale: Optional[str] = None,
+        content_type: str = "application/pdf",
     ) -> AnalyzeDocumentResponse:
         """Submits document stream to Azure Document Intelligence and awaits parsed result."""
         client = self.client_manager.get_client()
@@ -46,6 +47,7 @@ class DocumentAnalyzerService(BaseService):
                 model_id=model_id.value,
                 pages=pages,
                 features=feature_strings,
+                content_type=content_type,
             )
 
             kwargs = {}
@@ -59,7 +61,7 @@ class DocumentAnalyzerService(BaseService):
             poller = await client.begin_analyze_document(
                 model_id=model_id.value,
                 body=document_stream,
-                content_type="application/pdf",
+                content_type=content_type,
                 **kwargs,
             )
 

@@ -27,7 +27,7 @@ class DocumentSizeLimitExceededException(InvoiceProcessorException):
     """Raised when uploaded document exceeds size or page count limits."""
 
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
-        super().__init__(message=message, status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, details=details)
+        super().__init__(message=message, status_code=status.HTTP_413_CONTENT_TOO_LARGE, details=details)
 
 
 class AzureServiceException(InvoiceProcessorException):
