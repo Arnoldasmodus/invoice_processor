@@ -21,8 +21,3 @@ class AnalyzeDocumentRequest(BaseModel):
         default=None,
         description="Optional analysis features to enable",
     )
-    locale: Optional[str] = Field(
-        default=None,
-        description="Locale hint for text extraction (e.g., 'en-US', 'lt-LT')",
-        examples=["en-US"],
-    )

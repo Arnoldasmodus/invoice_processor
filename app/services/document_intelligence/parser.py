@@ -167,6 +167,10 @@ class DocumentIntelligenceParser:
             f = fields.get(name)
             return cls._extract_field_value(f) if f else None
 
+        def get_field_confidence(name: str) -> Optional[float]:
+            field = fields.get(name)
+            return getattr(field, "confidence", None) if field else None
+
         def get_field_amount(name: str) -> Optional[float]:
             val = get_field_val(name)
             if isinstance(val, dict) and "amount" in val:
@@ -200,6 +204,10 @@ class DocumentIntelligenceParser:
                         return float(v)
                     return None
 
+                def get_item_subconfidence(k: str) -> Optional[float]:
+                    field = item_obj.get(k)
+                    return getattr(field, "confidence", None) if field else None
+
                 items.append(
                     LineItem(
                         description=str(get_item_subval("Description") or "") or None,
@@ -210,6 +218,15 @@ class DocumentIntelligenceParser:
                         tax=get_item_subamount("Tax"),
                         product_code=str(get_item_subval("ProductCode") or "") or None,
                         confidence=getattr(item, "confidence", None),
+                        field_confidence={
+                            "description": get_item_subconfidence("Description"),
+                            "quantity": get_item_subconfidence("Quantity"),
+                            "unit": get_item_subconfidence("Unit"),
+                            "unit_price": get_item_subconfidence("UnitPrice"),
+                            "amount": get_item_subconfidence("Amount"),
+                            "tax": get_item_subconfidence("Tax"),
+                            "product_code": get_item_subconfidence("ProductCode"),
+                        },
                     )
                 )
 
@@ -238,6 +255,12 @@ class DocumentIntelligenceParser:
             or get_field_currency("SubTotal")
             or "EUR"
         )
+        currency_confidence = get_field_confidence("InvoiceTotal")
+        if currency_confidence is None:
+            currency_confidence = get_field_confidence("SubTotal")
+        iban_confidence = get_field_confidence("IBAN")
+        if iban_confidence is None:
+            iban_confidence = get_field_confidence("CustomerAddressRecipient")
 
         return InvoiceExtractionResponse(
             invoice_id=str(get_field_val("InvoiceId") or "") or None,
@@ -259,6 +282,23 @@ class DocumentIntelligenceParser:
             },
             items=items,
             raw_fields=raw_fields_map,
+            field_confidence={
+                "invoice_id": get_field_confidence("InvoiceId"),
+                "invoice_date": get_field_confidence("InvoiceDate"),
+                "due_date": get_field_confidence("DueDate"),
+                "vendor_name": get_field_confidence("VendorName"),
+                "vendor_address": get_field_confidence("VendorAddress"),
+                "vendor_tax_id": get_field_confidence("VendorTaxId"),
+                "customer_name": get_field_confidence("CustomerName"),
+                "customer_address": get_field_confidence("CustomerAddress"),
+                "customer_tax_id": get_field_confidence("CustomerTaxId"),
+                "subtotal": get_field_confidence("SubTotal"),
+                "total_tax": get_field_confidence("TotalTax"),
+                "invoice_total": get_field_confidence("InvoiceTotal"),
+                "currency": currency_confidence,
+                "payment_details.payment_term": get_field_confidence("PaymentTerm"),
+                "payment_details.iban": iban_confidence,
+            },
         )
 
     @classmethod

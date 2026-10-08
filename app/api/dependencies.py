@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import AsyncGenerator
 from fastapi import Depends
 from app.core.config import Settings, get_settings
-from app.core.security import validate_api_key
+from app.core.exceptions import StorageException
 from app.services.document_intelligence.analyzer import DocumentAnalyzerService
 from app.services.document_intelligence.client import DocumentIntelligenceClientManager
 from app.services.document_intelligence.parser import DocumentIntelligenceParser
@@ -11,15 +11,14 @@ from app.services.health_service import HealthService
 from app.services.pdf.validator import PDFValidator
 from app.services.pdf.splitter import PDFSplitter
 from app.services.storage.base import BaseStorageService
+from app.services.storage.azure_blob_storage import AzureBlobStorageService
 from app.services.storage.local_storage import LocalStorageService
 
 
 @lru_cache
-def get_azure_client_manager(
-    settings: Settings = Depends(get_settings),
-) -> DocumentIntelligenceClientManager:
+def get_azure_client_manager() -> DocumentIntelligenceClientManager:
     """Dependency provider for Azure Document Intelligence client manager."""
-    return DocumentIntelligenceClientManager(settings=settings)
+    return DocumentIntelligenceClientManager(settings=get_settings())
 
 
 def get_document_parser() -> DocumentIntelligenceParser:
@@ -43,7 +42,11 @@ def get_storage_service(
     settings: Settings = Depends(get_settings),
 ) -> BaseStorageService:
     """Dependency provider for document storage service."""
-    return LocalStorageService(settings=settings)
+    if settings.STORAGE_TYPE == "azure_blob":
+        return AzureBlobStorageService(settings=settings)
+    if settings.STORAGE_TYPE == "local":
+        return LocalStorageService(settings=settings)
+    raise StorageException("Unsupported STORAGE_TYPE. Use 'local' or 'azure_blob'.")
 
 
 def get_analyzer_service(

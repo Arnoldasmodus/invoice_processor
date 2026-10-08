@@ -14,7 +14,6 @@ def test_settings() -> Settings:
     return Settings(
         APP_NAME="Test Invoice Processor",
         DEBUG=True,
-        API_KEY="test-api-key",
         AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT="https://test.cognitiveservices.azure.com/",
         AZURE_DOCUMENT_INTELLIGENCE_KEY="test-key",
         MAX_FILE_SIZE_MB=10,

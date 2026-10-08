@@ -50,6 +50,10 @@ class LineItem(BaseModel):
     tax: Optional[float] = Field(None, description="Tax amount for this line")
     product_code: Optional[str] = Field(None, description="Product code / SKU")
     confidence: Optional[float] = Field(None, ge=0.0, le=1.0, description="Confidence")
+    field_confidence: Dict[str, Optional[float]] = Field(
+        default_factory=dict,
+        description="Azure confidence score for each extracted line-item field",
+    )
 
 
 class InvoiceExtractionResponse(BaseModel):
@@ -72,6 +76,10 @@ class InvoiceExtractionResponse(BaseModel):
     payment_details: Optional[Dict[str, Any]] = Field(default_factory=dict, description="IBAN, Swift, payment terms")
     items: List[LineItem] = Field(default_factory=list, description="Extracted invoice line items")
     raw_fields: Dict[str, DocumentField] = Field(default_factory=dict, description="All raw fields extracted")
+    field_confidence: Dict[str, Optional[float]] = Field(
+        default_factory=dict,
+        description="Azure confidence score for each normalized invoice field",
+    )
 
 
 class AnalyzeDocumentResponse(BaseModel):

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import FastAPI
 from httpx import AsyncClient
-from app.api.dependencies import get_document_service, validate_api_key
+from app.api.dependencies import get_document_service
 from app.models.response import AnalyzeDocumentResponse, InvoiceExtractionResponse
 from app.services.document_service import DocumentService
 
@@ -32,7 +32,6 @@ async def test_analyze_document_endpoint(app: FastAPI, async_client: AsyncClient
     )
 
     app.dependency_overrides[get_document_service] = lambda: mock_service
-    app.dependency_overrides[validate_api_key] = lambda: "test-key"
 
     try:
         files = {"file": ("invoice.pdf", valid_pdf_bytes, "application/pdf")}
@@ -58,7 +57,6 @@ async def test_scan_document_endpoint(app: FastAPI, async_client: AsyncClient, v
     )
 
     app.dependency_overrides[get_document_service] = lambda: mock_service
-    app.dependency_overrides[validate_api_key] = lambda: "test-key"
 
     try:
         files = {"file": ("document.pdf", valid_pdf_bytes, "application/pdf")}
@@ -87,7 +85,6 @@ async def test_extract_invoice_endpoint(app: FastAPI, async_client: AsyncClient,
     )
 
     app.dependency_overrides[get_document_service] = lambda: mock_service
-    app.dependency_overrides[validate_api_key] = lambda: "test-key"
 
     try:
         files = {"file": ("invoice.pdf", valid_pdf_bytes, "application/pdf")}
@@ -99,3 +96,10 @@ async def test_extract_invoice_endpoint(app: FastAPI, async_client: AsyncClient,
         assert data["vendor_name"] == "Global Vendor"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_openapi_has_no_authorization_scheme(app: FastAPI):
+    openapi = app.openapi()
+
+    assert "securitySchemes" not in openapi.get("components", {})
+    assert "security" not in openapi["paths"]["/api/v1/documents/analyze"]["post"]

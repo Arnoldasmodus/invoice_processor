@@ -1,30 +1,49 @@
-version: "3.8"
-
 services:
   invoice-processor:
     build:
       context: .
       dockerfile: Dockerfile
+      target: api
     container_name: invoice_processor_api
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:${HOST_PORT:-8000}:8000"
+    env_file:
+      - .env
     environment:
-      - APP_NAME=Invoice Processor API
-      - APP_VERSION=0.1.0
-      - DEBUG=true
-      - ENVIRONMENT=development
-      - API_V1_PREFIX=/api/v1
-      - API_KEY=${API_KEY:-dev-api-key}
-      - AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT}
-      - AZURE_DOCUMENT_INTELLIGENCE_KEY=${AZURE_DOCUMENT_INTELLIGENCE_KEY}
-      - STORAGE_TYPE=local
-      - LOCAL_STORAGE_DIR=/app/storage_data
+      HOST: 0.0.0.0
+      PORT: 8000
+      LOCAL_STORAGE_DIR: /app/storage_data
     volumes:
-      - ./storage_data:/app/storage_data
-      - ./app:/app/app
+      - invoice_processor_data:/app/storage_data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/live"]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 10s
+
+  invoice-processor-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ui
+    container_name: invoice_processor_ui
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${UI_HOST_PORT:-8501}:8501"
+    environment:
+      INVOICE_PROCESSOR_API_URL: http://invoice-processor:8000
+      API_V1_PREFIX: ${API_V1_PREFIX:-/api/v1}
+    depends_on:
+      invoice-processor:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  invoice_processor_data:

@@ -22,14 +22,10 @@ class Settings(BaseSettings):
     PORT: int = 8000
     WORKERS: int = 1
 
-    # Security
-    API_KEY: str = "dev-api-key"
-    API_KEY_HEADER_NAME: str = "X-API-Key"
-
     # Azure Document Intelligence
     AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: str = ""
     AZURE_DOCUMENT_INTELLIGENCE_KEY: str = ""
-    AZURE_DOCUMENT_INTELLIGENCE_API_VERSION: str = "2024-02-29-preview"
+    AZURE_DOCUMENT_INTELLIGENCE_API_VERSION: str = "2024-11-30"
 
     # PDF Processing constraints
     MAX_FILE_SIZE_MB: int = 20
@@ -39,6 +35,9 @@ class Settings(BaseSettings):
     # Storage settings
     STORAGE_TYPE: str = "local"
     LOCAL_STORAGE_DIR: str = "./storage_data"
+    AZURE_STORAGE_ACCOUNT_NAME: str = ""
+    AZURE_STORAGE_ACCOUNT_KEY: str = ""
+    AZURE_STORAGE_CONTAINER_NAME: str = ""
 
     @property
     def max_file_size_bytes(self) -> int:

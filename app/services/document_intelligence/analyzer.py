@@ -32,7 +32,6 @@ class DocumentAnalyzerService(BaseService):
         model_id: DocumentModelId = DocumentModelId.INVOICE,
         pages: Optional[str] = None,
         features: Optional[List[DocumentAnalysisFeature]] = None,
-        locale: Optional[str] = None,
         content_type: str = "application/pdf",
     ) -> AnalyzeDocumentResponse:
         """Submits document stream to Azure Document Intelligence and awaits parsed result."""
@@ -55,8 +54,6 @@ class DocumentAnalyzerService(BaseService):
                 kwargs["pages"] = pages
             if feature_strings:
                 kwargs["features"] = feature_strings
-            if locale:
-                kwargs["locale"] = locale
 
             poller = await client.begin_analyze_document(
                 model_id=model_id.value,

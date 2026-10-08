@@ -2,7 +2,6 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from app.api.dependencies import get_document_service
 from app.core.constants import DocumentModelId
-from app.core.security import validate_api_key
 from app.models.response import AnalyzeDocumentResponse, InvoiceExtractionResponse
 from app.services.document_service import DocumentService
 
@@ -25,15 +24,10 @@ async def analyze_document(
         default=None,
         description="Page range or selection to analyze (e.g., '1-2', '1,3')",
     ),
-    locale: Optional[str] = Form(
-        default=None,
-        description="Locale hint (e.g., 'en-US', 'lt-LT')",
-    ),
     save_to_storage: bool = Form(
         default=True,
         description="Whether to persist the uploaded file in document storage",
     ),
-    _api_key: str = Depends(validate_api_key),
     service: DocumentService = Depends(get_document_service),
 ) -> AnalyzeDocumentResponse:
     """Uploads and analyzes a PDF document."""
@@ -41,7 +35,6 @@ async def analyze_document(
         file=file,
         model_id=model_id,
         pages=pages,
-        locale=locale,
         save_to_storage=save_to_storage,
     )
 
@@ -55,7 +48,6 @@ async def analyze_document(
 async def extract_invoice(
     file: UploadFile = File(..., description="PDF invoice file to extract"),
     pages: Optional[str] = Form(default=None, description="Page range or selection"),
-    _api_key: str = Depends(validate_api_key),
     service: DocumentService = Depends(get_document_service),
 ) -> InvoiceExtractionResponse:
     """Directly extracts structured invoice data from a PDF."""
@@ -89,15 +81,10 @@ async def scan_document(
         default=None,
         description="Page range or selection to analyze (e.g., '1-2', '1,3')",
     ),
-    locale: Optional[str] = Form(
-        default=None,
-        description="Locale hint (e.g., 'en-US', 'lt-LT')",
-    ),
     save_to_storage: bool = Form(
         default=True,
         description="Whether to persist the uploaded file in document storage",
     ),
-    _api_key: str = Depends(validate_api_key),
     service: DocumentService = Depends(get_document_service),
 ) -> AnalyzeDocumentResponse:
     """Scans and analyzes a document (PDF, PNG, JPEG, TIFF, BMP)."""
@@ -105,6 +92,5 @@ async def scan_document(
         file=file,
         model_id=model_id,
         pages=pages,
-        locale=locale,
         save_to_storage=save_to_storage,
     )

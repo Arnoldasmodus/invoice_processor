@@ -32,7 +32,6 @@ class DocumentService(BaseService):
         file: UploadFile,
         model_id: DocumentModelId = DocumentModelId.INVOICE,
         pages: Optional[str] = None,
-        locale: Optional[str] = None,
         save_to_storage: bool = True,
     ) -> AnalyzeDocumentResponse:
         """Validates, optionally persists, and analyzes a PDF document."""
@@ -57,7 +56,6 @@ class DocumentService(BaseService):
             document_stream=stream,
             model_id=model_id,
             pages=pages,
-            locale=locale,
             content_type="application/pdf",
         )
 
@@ -104,7 +102,6 @@ class DocumentService(BaseService):
         file: UploadFile,
         model_id: DocumentModelId = DocumentModelId.LAYOUT,
         pages: Optional[str] = None,
-        locale: Optional[str] = None,
         save_to_storage: bool = True,
     ) -> AnalyzeDocumentResponse:
         """Validates, optionally persists, and scans a document file (PDF or image)."""
@@ -133,7 +130,6 @@ class DocumentService(BaseService):
             document_stream=stream,
             model_id=model_id,
             pages=pages,
-            locale=locale,
             content_type=file.content_type or "application/pdf",
         )
 

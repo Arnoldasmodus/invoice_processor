@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     yield
     # Cleanup on shutdown
-    azure_client_mgr = get_azure_client_manager(settings)
+    azure_client_mgr = get_azure_client_manager()
     await azure_client_mgr.close()
     logger.info("Application shutdown complete")
 

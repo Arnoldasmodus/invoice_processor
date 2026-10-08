@@ -8,7 +8,7 @@ FastAPI service for invoice document processing, validation, and information ext
 - **Azure Document Intelligence Integration**: Prebuilt models (`prebuilt-invoice`, `prebuilt-layout`, `prebuilt-read`) support.
 - **Pydantic v2 Models**: Strict schemas with validation for request, response, and domain structures.
 - **PDF Preprocessing**: PDF validation (size, page count, corruption check) and page splitting/batching.
-- **Storage Layer**: Local storage interface with abstract base provider for cloud blob extensions.
+- **Storage Layer**: Local filesystem and asynchronous Azure Blob Storage providers.
 - **Health Checks & Probes**: Readiness and liveness endpoints.
 - **Container Ready**: Docker and Docker Compose setup.
 
@@ -106,16 +106,63 @@ cp .env.example .env
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --reload-dir app
 ```
 
 ### 3. Run with Docker Compose
 
-```bash
-docker-compose up --build
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-API docs will be available at `http://localhost:8000/docs`.
+Set the Azure Document Intelligence endpoint and key in `.env`, then start both Docker
+services:
+
+```powershell
+docker compose up --build -d
+```
+
+Open the Streamlit UI at `http://localhost:8501`; the API docs are at
+`http://localhost:8000/docs`. Both ports are published only on this computer
+(`127.0.0.1`). If either port is already in use, change `HOST_PORT` or `UI_HOST_PORT` in
+`.env` and use the matching UI/API URL. To view logs and stop the services:
+
+```powershell
+docker compose logs -f
+docker compose down
+```
+
+Uploaded data is kept in a Docker-managed volume when the container is recreated. The
+`.env` file is excluded from Git and the Docker build context; do not put real keys in
+`.env.example`. Because the API has no authentication, do not expose it beyond localhost
+without adding an appropriate access-control layer.
+
+The UI sends PDFs to the API over the private Compose network. The API does not require
+authentication; both services are bound to localhost and should not be exposed beyond
+this computer without adding an appropriate access-control layer.
+
+### Azure Blob Storage
+
+To use an existing Azure container, set the following values in `.env`:
+
+```dotenv
+STORAGE_TYPE=azure_blob
+AZURE_STORAGE_ACCOUNT_NAME=your-storage-account
+AZURE_STORAGE_ACCOUNT_KEY=your-storage-account-key
+AZURE_STORAGE_CONTAINER_NAME=your-existing-container
+```
+
+Restart the application after changing configuration. The storage account key must allow
+blob read, write, and delete operations. The service does not create the container.
+Uploads use unique blob names; `STORAGE_TYPE=local` keeps filesystem storage enabled.
+Document uploads are persisted when `save_to_storage=true` on the analyze or scan endpoint.
+The dedicated invoice extraction endpoint does not save uploaded files.
+
+Docker Compose loads `.env` into the container, so setting `STORAGE_TYPE=azure_blob` and
+the Blob settings above is sufficient to enable Blob storage.
+`AZURE_DOCUMENT_INTELLIGENCE_MODEL_ID` in `.env` is not currently used by the application.
 
 ---
 
